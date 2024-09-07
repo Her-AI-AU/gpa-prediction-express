@@ -45,9 +45,9 @@ app.post("/users", (req, res) => {
 });
 
 app.put("/users/:id", (req, res) => {
-  const { name, email } = req.body;
-  const query = "UPDATE users SET name = ?, email = ? WHERE id = ?";
-  const params = [name, email, req.params.id];
+  const { target_score } = req.body;
+  const query = "UPDATE users SET target_score = ? WHERE id = ?";
+  const params = [target_score, req.params.id];
   db.run(query, params, function (err) {
     if (err) {
       res.status(500).json({ error: err.message });
@@ -79,10 +79,10 @@ app.get("/subjects/:id", (req, res) => {
   });
 });
 app.post("/subjects", (req, res) => {
-  const { name, semester, hurdle, user_id, score, assessments_list } = req.body;
+  const { name, semester, user_id } = req.body;
   const query =
-    "INSERT INTO subjects (name, semester, hurdle, user_id, score, assessments_list) VALUES (?, ?, ?, ?, ?, ?)";
-  const params = [name, semester, hurdle, user_id, score, assessments_list];
+    "INSERT INTO subjects (name, semester, user_id) VALUES (?, ?, ?)";
+  const params = [name, semester, user_id];
   db.run(query, params, function (err) {
     if (err) {
       res.status(500).json({ error: err.message });
@@ -146,10 +146,10 @@ app.get("/assessments/:id", (req, res) => {
   });
 });
 app.post("/assessments", (req, res) => {
-  const { name, user_id, subject_id, hurdle, score, description } = req.body;
+  const { name, user_id, subject_id, description } = req.body;
   const query =
-    "INSERT INTO assessments (name, user_id, subject_id, hurdle, score, description) VALUES (?, ?, ?, ?, ?, ?)";
-  const params = [name, user_id, subject_id, hurdle, score, description];
+    "INSERT INTO assessments (name, user_id, subject_id, description) VALUES (?, ?, ?, ?)";
+  const params = [name, user_id, subject_id, description];
   db.run(query, params, function (err) {
     if (err) {
       res.status(500).json({ error: err.message });
