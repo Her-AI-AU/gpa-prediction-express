@@ -1,6 +1,5 @@
 const sqlite3 = require("sqlite3").verbose();
 
-// Create a new SQLite database or open an existing one
 const db = new sqlite3.Database("./database.db", (err) => {
   if (err) {
     console.error("Error opening database:", err);
@@ -9,7 +8,6 @@ const db = new sqlite3.Database("./database.db", (err) => {
   }
 });
 
-// Create users table
 db.serialize(() => {
   db.run(
     `
@@ -29,7 +27,6 @@ db.serialize(() => {
     }
   );
 
-  // Create subjects table
   db.run(
     `
     CREATE TABLE IF NOT EXISTS subjects (
@@ -52,7 +49,6 @@ db.serialize(() => {
     }
   );
 
-  // Create assessments table
   db.run(
     `
     CREATE TABLE IF NOT EXISTS assessments (
