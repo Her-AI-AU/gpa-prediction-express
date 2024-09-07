@@ -1,6 +1,6 @@
-const express = require('express');
-const cors = require('cors');
-const db = require('./database');
+const express = require("express");
+const cors = require("cors");
+const db = require("./database");
 
 const app = express();
 const port = process.env.PORT || 5001;
@@ -8,9 +8,8 @@ const port = process.env.PORT || 5001;
 app.use(cors());
 app.use(express.json());
 
-// Sample route to get all users
-app.get('/users', (req, res) => {
-  const query = 'SELECT * FROM users';
+app.get("/users", (req, res) => {
+  const query = "SELECT * FROM users";
   db.all(query, [], (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
@@ -20,9 +19,8 @@ app.get('/users', (req, res) => {
   });
 });
 
-// Sample route to get a single user by ID
-app.get('/users/:id', (req, res) => {
-  const query = 'SELECT * FROM users WHERE id = ?';
+app.get("/users/:id", (req, res) => {
+  const query = "SELECT * FROM users WHERE id = ?";
   const params = [req.params.id];
   db.get(query, params, (err, row) => {
     if (err) {
@@ -33,10 +31,9 @@ app.get('/users/:id', (req, res) => {
   });
 });
 
-// Sample route to create a new user
-app.post('/users', (req, res) => {
+app.post("/users", (req, res) => {
   const { name, email } = req.body;
-  const query = 'INSERT INTO users (name, email) VALUES (?, ?)';
+  const query = "INSERT INTO users (name, email) VALUES (?, ?)";
   const params = [name, email];
   db.run(query, params, function (err) {
     if (err) {
@@ -47,10 +44,9 @@ app.post('/users', (req, res) => {
   });
 });
 
-// Sample route to update a user
-app.put('/users/:id', (req, res) => {
+app.put("/users/:id", (req, res) => {
   const { name, email } = req.body;
-  const query = 'UPDATE users SET name = ?, email = ? WHERE id = ?';
+  const query = "UPDATE users SET name = ?, email = ? WHERE id = ?";
   const params = [name, email, req.params.id];
   db.run(query, params, function (err) {
     if (err) {
@@ -61,9 +57,130 @@ app.put('/users/:id', (req, res) => {
   });
 });
 
-// Sample route to delete a user
-app.delete('/users/:id', (req, res) => {
-  const query = 'DELETE FROM users WHERE id = ?';
+app.get("/subjects", (req, res) => {
+  const query = "SELECT * FROM subjects";
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ subjects: rows });
+  });
+});
+app.get("/subjects/:id", (req, res) => {
+  const query = "SELECT * FROM subjects WHERE id = ?";
+  const params = [req.params.id];
+  db.get(query, params, (err, row) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ subject: row });
+  });
+});
+app.post("/subjects", (req, res) => {
+  const { name, semester, hurdle, user_id, score, assessments_list } = req.body;
+  const query =
+    "INSERT INTO subjects (name, semester, hurdle, user_id, score, assessments_list) VALUES (?, ?, ?, ?, ?, ?)";
+  const params = [name, semester, hurdle, user_id, score, assessments_list];
+  db.run(query, params, function (err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ id: this.lastID });
+  });
+});
+app.put("/subjects/:id", (req, res) => {
+  const { name, semester, hurdle, user_id, score, assessments_list } = req.body;
+  const query =
+    "UPDATE subjects SET name = ?, semester = ?, hurdle = ?, user_id = ?, score = ?, assessments_list = ? WHERE id = ?";
+  const params = [
+    name,
+    semester,
+    hurdle,
+    user_id,
+    score,
+    assessments_list,
+    req.params.id,
+  ];
+  db.run(query, params, function (err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ changes: this.changes });
+  });
+});
+app.delete("/subjects/:id", (req, res) => {
+  const query = "DELETE FROM subjects WHERE id = ?";
+  const params = [req.params.id];
+  db.run(query, params, function (err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ changes: this.changes });
+  });
+});
+
+app.get("/assessments", (req, res) => {
+  const query = "SELECT * FROM assessments";
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ assessments: rows });
+  });
+});
+app.get("/assessments/:id", (req, res) => {
+  const query = "SELECT * FROM assessments WHERE id = ?";
+  const params = [req.params.id];
+  db.get(query, params, (err, row) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ assessment: row });
+  });
+});
+app.post("/assessments", (req, res) => {
+  const { name, user_id, subject_id, hurdle, score, description } = req.body;
+  const query =
+    "INSERT INTO assessments (name, user_id, subject_id, hurdle, score, description) VALUES (?, ?, ?, ?, ?, ?)";
+  const params = [name, user_id, subject_id, hurdle, score, description];
+  db.run(query, params, function (err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ id: this.lastID });
+  });
+});
+app.put("/assessments/:id", (req, res) => {
+  const { name, user_id, subject_id, hurdle, score, description } = req.body;
+  const query =
+    "UPDATE assessments SET name = ?, user_id = ?, subject_id = ?, hurdle = ?, score = ?, description = ? WHERE id = ?";
+  const params = [
+    name,
+    user_id,
+    subject_id,
+    hurdle,
+    score,
+    description,
+    req.params.id,
+  ];
+  db.run(query, params, function (err) {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ changes: this.changes });
+  });
+});
+app.delete("/assessments/:id", (req, res) => {
+  const query = "DELETE FROM assessments WHERE id = ?";
   const params = [req.params.id];
   db.run(query, params, function (err) {
     if (err) {
