@@ -7,6 +7,25 @@ const port = process.env.PORT || 5001;
 
 app.use(cors());
 app.use(express.json());
+// User authentication route
+app.post("/login", (req, res) => {
+  const { student_id } = req.body;
+  const query = "SELECT * FROM users WHERE student_id = ?";
+  db.get(query, [student_id], (err, user) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (!user) {
+      res.status(401).json({ error: "Invalid credentials" });
+      return;
+    }
+    // In a real-world scenario, you should use bcrypt to compare hashed passwords
+    res.json({
+      user: { id: user.id, name: user.name, student_id: user.student_id },
+    });
+  });
+});
 
 app.get("/users", (req, res) => {
   const query = "SELECT * FROM users";
@@ -32,9 +51,9 @@ app.get("/users/:id", (req, res) => {
 });
 
 app.post("/users", (req, res) => {
-  const { name, email } = req.body;
-  const query = "INSERT INTO users (name, email) VALUES (?, ?)";
-  const params = [name, email];
+  const { name, student_id } = req.body;
+  const query = "INSERT INTO users (name, student_id) VALUES (?, ?)";
+  const params = [name, student_id];
   db.run(query, params, function (err) {
     if (err) {
       res.status(500).json({ error: err.message });
@@ -67,16 +86,23 @@ app.get("/subjects", (req, res) => {
     res.json({ subjects: rows });
   });
 });
-app.get("/subjects/:id", (req, res) => {
-  const query = "SELECT * FROM subjects WHERE id = ?";
-  const params = [req.params.id];
-  db.get(query, params, (err, row) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+app.get("/subjects/:userId", (req, res) => {
+  const userId = req.params.userId;
+
+  db.all(
+    `
+    SELECT * FROM subjects WHERE user_id = ?
+  `,
+    [userId],
+    (err, rows) => {
+      if (err) {
+        console.error("Error querying subjects:", err);
+        res.status(500).json({ error: "Failed to retrieve subjects" });
+      } else {
+        res.status(200).json({ subjects: rows });
+      }
     }
-    res.json({ subject: row });
-  });
+  );
 });
 app.post("/subjects", (req, res) => {
   const { name, semester, user_id } = req.body;

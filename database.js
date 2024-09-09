@@ -14,7 +14,7 @@ db.serialize(() => {
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      email TEXT NOT NULL UNIQUE,
+      student_id TEXT NOT NULL UNIQUE,
       target_score INTEGER
     )
   `,
@@ -32,6 +32,7 @@ db.serialize(() => {
     CREATE TABLE IF NOT EXISTS subjects (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
+      code TEXT,
       semester TEXT,
       hurdle INTEGER,
       user_id INTEGER,
@@ -54,8 +55,9 @@ db.serialize(() => {
     CREATE TABLE IF NOT EXISTS assessments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      hurdle INTEGER,
+      hurdle INTEGER NOT NULL DEFAULT 0,
       score REAL,
+      rate INTEGER,
       description TEXT,
       user_id INTEGER,
       subject_id INTEGER,
