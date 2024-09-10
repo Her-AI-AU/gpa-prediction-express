@@ -37,7 +37,6 @@ app.get("/users", (req, res) => {
     res.json({ users: rows });
   });
 });
-
 app.get("/users/:id", (req, res) => {
   const query = "SELECT * FROM users WHERE id = ?";
   const params = [req.params.id];
@@ -49,7 +48,6 @@ app.get("/users/:id", (req, res) => {
     res.json({ user: row });
   });
 });
-
 app.post("/users", (req, res) => {
   const { name, student_id } = req.body;
   const query = "INSERT INTO users (name, student_id) VALUES (?, ?)";
@@ -62,7 +60,6 @@ app.post("/users", (req, res) => {
     res.json({ id: this.lastID });
   });
 });
-
 app.put("/users/:id", (req, res) => {
   const { target_score } = req.body;
   const query = "UPDATE users SET target_score = ? WHERE id = ?";
@@ -86,6 +83,7 @@ app.get("/subjects", (req, res) => {
     res.json({ subjects: rows });
   });
 });
+// to get subjects by user_id
 app.get("/subjects/:userId", (req, res) => {
   const userId = req.params.userId;
 
@@ -104,6 +102,25 @@ app.get("/subjects/:userId", (req, res) => {
     }
   );
 });
+// to get subject by id
+app.get("/subject/:id", (req, res) => {
+  const id = req.params.id;
+
+  db.all(
+    `
+    SELECT * FROM subjects WHERE id = ?
+  `,
+    [id],
+    (err, rows) => {
+      if (err) {
+        console.error("Error querying subjects:", err);
+        res.status(500).json({ error: "Failed to retrieve subjects" });
+      } else {
+        res.status(200).json({ subject: rows });
+      }
+    }
+  );
+});
 app.post("/subjects", (req, res) => {
   const { name, semester, user_id } = req.body;
   const query =
@@ -118,18 +135,38 @@ app.post("/subjects", (req, res) => {
   });
 });
 app.put("/subjects/:id", (req, res) => {
-  const { name, semester, hurdle, user_id, score, assessments_list } = req.body;
-  const query =
-    "UPDATE subjects SET name = ?, semester = ?, hurdle = ?, user_id = ?, score = ?, assessments_list = ? WHERE id = ?";
-  const params = [
-    name,
-    semester,
-    hurdle,
-    user_id,
-    score,
-    assessments_list,
-    req.params.id,
-  ];
+  const { name, semester, hurdle, score, assessments_list } = req.body;
+  const fields = [];
+  const params = [];
+
+  if (name !== undefined) {
+    fields.push("name = ?");
+    params.push(name);
+  }
+  if (semester !== undefined) {
+    fields.push("semester = ?");
+    params.push(semester);
+  }
+  if (hurdle !== undefined) {
+    fields.push("hurdle = ?");
+    params.push(hurdle);
+  }
+  if (score !== undefined) {
+    fields.push("score = ?");
+    params.push(score);
+  }
+  if (assessments_list !== undefined) {
+    fields.push("assessments_list = ?");
+    params.push(assessments_list);
+  }
+
+  if (fields.length === 0) {
+    return res.status(400).json({ error: "No fields to update" });
+  }
+
+  const query = `UPDATE subjects SET ${fields.join(", ")} WHERE id = ?`;
+  params.push(req.params.id);
+
   db.run(query, params, function (err) {
     if (err) {
       res.status(500).json({ error: err.message });
@@ -160,7 +197,8 @@ app.get("/assessments", (req, res) => {
     res.json({ assessments: rows });
   });
 });
-app.get("/assessments/:id", (req, res) => {
+// to get assessment by id
+app.get("/assessment/:id", (req, res) => {
   const query = "SELECT * FROM assessments WHERE id = ?";
   const params = [req.params.id];
   db.get(query, params, (err, row) => {
@@ -169,6 +207,18 @@ app.get("/assessments/:id", (req, res) => {
       return;
     }
     res.json({ assessment: row });
+  });
+});
+// to get assessments by subject_id
+app.get("/assessments/:subject_id", (req, res) => {
+  const query = "SELECT * FROM assessments WHERE subject_id = ?";
+  const params = [req.params.subject_id];
+  db.all(query, params, (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ assessments: rows });
   });
 });
 app.post("/assessments", (req, res) => {
@@ -185,22 +235,37 @@ app.post("/assessments", (req, res) => {
   });
 });
 app.put("/assessments/:id", (req, res) => {
-  const { name, user_id, subject_id, hurdle, score, description } = req.body;
-  const query =
-    "UPDATE assessments SET name = ?, user_id = ?, subject_id = ?, hurdle = ?, score = ?, description = ? WHERE id = ?";
-  const params = [
-    name,
-    user_id,
-    subject_id,
-    hurdle,
-    score,
-    description,
-    req.params.id,
-  ];
+  const { name, hurdle, score, description } = req.body;
+  const fields = [];
+  const params = [];
+
+  if (name !== undefined) {
+    fields.push("name = ?");
+    params.push(name);
+  }
+  if (hurdle !== undefined) {
+    fields.push("hurdle = ?");
+    params.push(hurdle);
+  }
+  if (score !== undefined) {
+    fields.push("score = ?");
+    params.push(score);
+  }
+  if (description !== undefined) {
+    fields.push("description = ?");
+    params.push(description);
+  }
+
+  if (fields.length === 0) {
+    return res.status(400).json({ error: "No fields to update" });
+  }
+
+  const query = `UPDATE assessments SET ${fields.join(", ")} WHERE id = ?`;
+  params.push(req.params.id);
+
   db.run(query, params, function (err) {
     if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+      return res.status(500).json({ error: err.message });
     }
     res.json({ changes: this.changes });
   });
