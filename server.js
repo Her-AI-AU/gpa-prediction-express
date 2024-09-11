@@ -27,6 +27,36 @@ app.post("/login", (req, res) => {
   });
 });
 
+app.post("/register", (req, res) => {
+  const { name, student_id } = req.body;
+
+  // Check if user already exists
+  const checkUserQuery = "SELECT * FROM users WHERE student_id = ?";
+  db.get(checkUserQuery, [student_id], (err, user) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (user) {
+      res.status(400).json({ error: "User already exists" });
+      return;
+    }
+
+    // Insert new user
+    const insertUserQuery = "INSERT INTO users (name, student_id) VALUES (?, ?)";
+    db.run(insertUserQuery, [name, student_id], function (err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({
+        user: { id: this.lastID, name, student_id },
+        message: "User registered successfully",
+      });
+    });
+  });
+});
+
 app.get("/users", (req, res) => {
   const query = "SELECT * FROM users";
   db.all(query, [], (err, rows) => {
