@@ -20,9 +20,38 @@ app.post("/login", (req, res) => {
       res.status(401).json({ error: "Invalid credentials" });
       return;
     }
-    // In a real-world scenario, you should use bcrypt to compare hashed passwords
     res.json({
       user: { id: user.id, name: user.name, student_id: user.student_id },
+    });
+  });
+});
+
+app.post("/register", (req, res) => {
+  const { name, student_id } = req.body;
+
+  // Check if user already exists
+  const checkUserQuery = "SELECT * FROM users WHERE student_id = ?";
+  db.get(checkUserQuery, [student_id], (err, user) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    if (user) {
+      res.status(400).json({ error: "User already exists" });
+      return;
+    }
+
+    // Insert new user
+    const insertUserQuery = "INSERT INTO users (name, student_id) VALUES (?, ?)";
+    db.run(insertUserQuery, [name, student_id], function (err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({
+        user: { id: this.lastID, name, student_id },
+        message: "User registered successfully",
+      });
     });
   });
 });
