@@ -38,6 +38,7 @@ db.serialize(() => {
       weight REAL,
       user_id INTEGER,
       score REAL,
+      target_score REAL,
       assessments_list TEXT,
       FOREIGN KEY (user_id) REFERENCES users(id)
     )

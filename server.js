@@ -164,7 +164,7 @@ app.post("/subjects", (req, res) => {
   });
 });
 app.put("/subjects/:id", (req, res) => {
-  const { name, semester, hurdle, score, assessments_list } = req.body;
+  const { name, semester, hurdle, score, assessments_list, weight, target_score } = req.body;
   const fields = [];
   const params = [];
 
@@ -187,6 +187,14 @@ app.put("/subjects/:id", (req, res) => {
   if (assessments_list !== undefined) {
     fields.push("assessments_list = ?");
     params.push(assessments_list);
+  }
+  if (weight !== undefined) {
+    fields.push("weight = ?");
+    params.push(weight);
+  }
+  if (target_score !== undefined) {
+    fields.push("target_score = ?");
+    params.push(target_score);
   }
 
   if (fields.length === 0) {
@@ -264,7 +272,7 @@ app.post("/assessments", (req, res) => {
   });
 });
 app.put("/assessments/:id", (req, res) => {
-  const { name, hurdle, score, description } = req.body;
+  const { name, hurdle, score, rate, description } = req.body;
   const fields = [];
   const params = [];
 
@@ -279,6 +287,10 @@ app.put("/assessments/:id", (req, res) => {
   if (score !== undefined) {
     fields.push("score = ?");
     params.push(score);
+  }
+  if (rate !== undefined) {
+    fields.push("rate = ?");
+    params.push(rate);
   }
   if (description !== undefined) {
     fields.push("description = ?");
