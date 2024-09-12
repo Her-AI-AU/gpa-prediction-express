@@ -35,6 +35,7 @@ db.serialize(() => {
       code TEXT,
       semester TEXT,
       hurdle INTEGER,
+      weight REAL,
       user_id INTEGER,
       score REAL,
       assessments_list TEXT,
