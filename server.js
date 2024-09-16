@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const db = require("./database");
+const bcrypt = require("bcrypt");
 
 const app = express();
 const port = process.env.PORT || 5001;
@@ -8,15 +9,20 @@ const port = process.env.PORT || 5001;
 app.use(cors());
 app.use(express.json());
 // User authentication route
-app.post("/login", (req, res) => {
-  const { student_id } = req.body;
+app.post("/login", async (req, res) => {
+  const { student_id, password } = req.body;
   const query = "SELECT * FROM users WHERE student_id = ?";
-  db.get(query, [student_id], (err, user) => {
+  db.get(query, [student_id], async (err, user) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
     if (!user) {
+      res.status(401).json({ error: "Invalid credentials" });
+      return;
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       res.status(401).json({ error: "Invalid credentials" });
       return;
     }
@@ -26,12 +32,12 @@ app.post("/login", (req, res) => {
   });
 });
 
-app.post("/register", (req, res) => {
-  const { name, student_id } = req.body;
+app.post("/register", async (req, res) => {
+  const { name, student_id, password } = req.body;
 
   // Check if user already exists
   const checkUserQuery = "SELECT * FROM users WHERE student_id = ?";
-  db.get(checkUserQuery, [student_id], (err, user) => {
+  db.get(checkUserQuery, [student_id], async (err, user) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
@@ -41,9 +47,12 @@ app.post("/register", (req, res) => {
       return;
     }
 
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
     // Insert new user
-    const insertUserQuery = "INSERT INTO users (name, student_id) VALUES (?, ?)";
-    db.run(insertUserQuery, [name, student_id], function (err) {
+    const insertUserQuery = "INSERT INTO users (name, student_id, password) VALUES (?, ?, ?)";
+    db.run(insertUserQuery, [name, student_id, hashedPassword], function (err) {
       if (err) {
         res.status(500).json({ error: err.message });
         return;
